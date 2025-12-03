@@ -25,13 +25,14 @@ class DatabaseHelper {
   }
 
 Future _createDB(Database db, int version) async {
-  await db.execute('DROP TABLE IF EXISTS contatos');
   await db.execute('''
     CREATE TABLE contatos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nome TEXT NOT NULL,
       telefone TEXT NOT NULL,
-      email TEXT NOT NULL
+      email TEXT NOT NULL,
+      uf TEXT NOT NULL,
+      municipio TEXT NOT NULL
     )
   ''');
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
+import '../models/contato.dart';
 
 class CadastroScreen extends StatefulWidget {
   const CadastroScreen({super.key});
@@ -9,74 +10,67 @@ class CadastroScreen extends StatefulWidget {
 }
 
 class _CadastroScreenState extends State<CadastroScreen> {
-  final TextEditingController nomeController = TextEditingController();
-  final TextEditingController telefoneController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-
-  void salvarContato() async {
-    final nome = nomeController.text;
-    final telefone = telefoneController.text;
-    final email = emailController.text;
-
-    if (nome.isEmpty || telefone.isEmpty || email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha todos os campos')),
-      );
-      return;
-    }
-
-
-    final id = await DatabaseHelper.instance.inserirContato({
-      'nome': nome,
-      'telefone': telefone,
-      'email': email,
-    });
-    print('Contato inserido com id: $id');
-
-    final lista = await DatabaseHelper.instance.listarContatos();
-    print(lista);
-
-
-
-
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Contato salvo com sucesso')),
-    );
-
-    nomeController.clear();
-    telefoneController.clear();
-    emailController.clear();
-  }
+  final _formKey = GlobalKey<FormState>();
+  final _nomeController = TextEditingController();
+  final _telefoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _ufController = TextEditingController();
+  final _municipioController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cadastrar Contato')),
+      appBar: AppBar(title: const Text('Novo Contato')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: nomeController,
-              decoration: const InputDecoration(labelText: 'Nome'),
-            ),
-            TextField(
-              controller: telefoneController,
-              decoration: const InputDecoration(labelText: 'Telefone'),
-              keyboardType: TextInputType.phone,
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: salvarContato,
-              child: const Text('Salvar'),
-            ),
-          ],
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _nomeController,
+                decoration: const InputDecoration(labelText: 'Nome'),
+                validator: (value) => value!.isEmpty ? 'Informe o nome' : null,
+              ),
+              TextFormField(
+                controller: _telefoneController,
+                decoration: const InputDecoration(labelText: 'Telefone'),
+                validator: (value) => value!.isEmpty ? 'Informe o telefone' : null,
+              ),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'E-mail'),
+                validator: (value) => value!.isEmpty ? 'Informe o e-mail' : null,
+              ),
+              TextFormField(
+                controller: _ufController,
+                decoration: const InputDecoration(labelText: 'UF'),
+                validator: (value) => value!.isEmpty ? 'Informe a UF' : null,
+              ),
+              TextFormField(
+                controller: _municipioController,
+                decoration: const InputDecoration(labelText: 'Município'),
+                validator: (value) => value!.isEmpty ? 'Informe o município' : null,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final contato = Contato(
+                      nome: _nomeController.text,
+                      telefone: _telefoneController.text,
+                      email: _emailController.text,
+                      uf: _ufController.text,
+                      municipio: _municipioController.text,
+                    );
+                    await DatabaseHelper.instance.inserirContato(contato.toMap());
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Salvar'),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -3,8 +3,17 @@ class Contato {
   final String nome;
   final String telefone;
   final String email;
+  final String uf;
+  final String municipio;
 
-  Contato({this.id, required this.nome, required this.telefone, required this.email});
+  Contato({
+    this.id,
+    required this.nome,
+    required this.telefone,
+    required this.email,
+    required this.uf,
+    required this.municipio,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -12,6 +21,8 @@ class Contato {
       'nome': nome,
       'telefone': telefone,
       'email': email,
+      'uf': uf,
+      'municipio': municipio,
     };
   }
 
@@ -21,6 +32,8 @@ class Contato {
       nome: map['nome'],
       telefone: map['telefone'],
       email: map['email'],
+      uf: map['uf'],
+      municipio: map['municipio'],
     );
   }
 }
