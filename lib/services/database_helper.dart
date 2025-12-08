@@ -16,10 +16,8 @@ class DatabaseHelper {
 
   Future<Database> _initDB(String filePath) async {
   final dbPath = await getDatabasesPath();
-  print('Banco em: $dbPath'); // 🔎 mostra o diretório base
 
   final path = join(dbPath, filePath);
-  print('Arquivo completo: $path'); // 🔎 mostra o caminho completo do arquivo
 
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }

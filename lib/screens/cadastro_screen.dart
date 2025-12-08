@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
+import 'package:provider/provider.dart';
 import '../models/contato.dart';
+import '../viewmodels/contato_viewmodel.dart';
 
 class CadastroScreen extends StatefulWidget {
   final Contato? contato; // se vier preenchido, é edição
@@ -22,7 +23,6 @@ class _CadastroScreenState extends State<CadastroScreen> {
   @override
   void initState() {
     super.initState();
-    // Preenche os campos se for edição
     _nomeController = TextEditingController(text: widget.contato?.nome ?? '');
     _telefoneController = TextEditingController(text: widget.contato?.telefone ?? '');
     _emailController = TextEditingController(text: widget.contato?.email ?? '');
@@ -30,10 +30,45 @@ class _CadastroScreenState extends State<CadastroScreen> {
     _municipioController = TextEditingController(text: widget.contato?.municipio ?? '');
   }
 
+  void _salvar() async {
+    if (_formKey.currentState!.validate()) {
+      final vm = context.read<ContatoViewModel>();
+      final navigator = Navigator.of(context);
+
+      final contato = Contato(
+        id: widget.contato?.id,
+        nome: _nomeController.text,
+        telefone: _telefoneController.text,
+        email: _emailController.text,
+        uf: _ufController.text,
+        municipio: _municipioController.text,
+      );
+
+      try {
+        if (widget.contato == null) {
+          await vm.adicionarContato(contato);
+        } else {
+          await vm.editarContato(contato);
+        }
+
+        if (!mounted) return;
+        navigator.pop(true);
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar contato: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D47A1), // 🔵 fundo azul
+      backgroundColor: const Color(0xFF0D47A1),
       appBar: AppBar(
         title: Text(
           widget.contato == null ? 'Novo Contato' : 'Editar Contato',
@@ -64,26 +99,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                   backgroundColor: Colors.white,
                   textStyle: const TextStyle(fontSize: 20),
                 ),
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    final contato = Contato(
-                      id: widget.contato?.id, // mantém o id se for edição
-                      nome: _nomeController.text,
-                      telefone: _telefoneController.text,
-                      email: _emailController.text,
-                      uf: _ufController.text,
-                      municipio: _municipioController.text,
-                    );
-
-                    if (widget.contato == null) {
-                      await DatabaseHelper.instance.inserirContato(contato.toMap());
-                    } else {
-                      await DatabaseHelper.instance.atualizarContato(contato.toMap());
-                    }
-
-                    Navigator.pop(context, true);
-                  }
-                },
+                onPressed: _salvar,
                 child: Text(
                   widget.contato == null ? 'Salvar' : 'Atualizar',
                   style: const TextStyle(

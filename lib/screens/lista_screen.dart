@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
-import '../models/contato.dart';
-import 'detalhes_screen.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/contato_viewmodel.dart';
 import 'cadastro_screen.dart';
+import 'detalhes_screen.dart';
 
 class ListaScreen extends StatefulWidget {
   const ListaScreen({super.key});
@@ -12,36 +12,21 @@ class ListaScreen extends StatefulWidget {
 }
 
 class _ListaScreenState extends State<ListaScreen> {
-  List<Contato> contatos = [];
-  List<Contato> contatosFiltrados = [];
-
   @override
   void initState() {
     super.initState();
-    carregarContatos();
-  }
-
-  Future<void> carregarContatos() async {
-    final dados = await DatabaseHelper.instance.listarContatos();
-    final lista = dados.map((map) => Contato.fromMap(map)).toList();
-    setState(() {
-      contatos = lista;
-      contatosFiltrados = lista;
-    });
-  }
-
-  void _filtrarContatos(String query) {
-    final resultados = contatos.where((c) {
-      return c.nome.toLowerCase().contains(query.toLowerCase());
-    }).toList();
-
-    setState(() {
-      contatosFiltrados = resultados;
+    // Carrega contatos após o primeiro frame, evitando uso de context em initState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ContatoViewModel>().carregarContatos();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<ContatoViewModel>();
+
     return Scaffold(
       body: Stack(
         children: [
@@ -57,12 +42,12 @@ class _ListaScreenState extends State<ListaScreen> {
             children: [
               AppBar(
                 title: const Text(
-                    'Lista de Contatos',
-                    style: TextStyle(
-                      color: Colors.white, // 🔵 aqui você escolhe a cor
-                      fontWeight: FontWeight.bold, // opcional: deixar em negrito
-                    ),
+                  'Lista de Contatos',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
                 backgroundColor: const Color.fromARGB(0, 250, 249, 249),
                 elevation: 0,
               ),
@@ -76,43 +61,49 @@ class _ListaScreenState extends State<ListaScreen> {
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.all(12),
                     ),
-                    onChanged: _filtrarContatos,
+                    onChanged: (query) =>
+                        context.read<ContatoViewModel>().filtrar(query),
                   ),
                 ),
               ),
               Expanded(
-                child: contatosFiltrados.isEmpty
-                    ? const Center(child: Text('Nenhum contato encontrado'))
-                    : ListView.builder(
-                        itemCount: contatosFiltrados.length,
-                        itemBuilder: (context, index) {
-                          final contato = contatosFiltrados[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                child: Text(contato.nome[0]),
-                              ),
-                              title: Text(contato.nome),
-                              subtitle: Text(
-                                  '${contato.telefone} • ${contato.uf}/${contato.municipio}'),
-                              onTap: () async {
-                                final atualizado = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        DetalhesScreen(contato: contato),
+                child: vm.carregando
+                    ? const Center(child: CircularProgressIndicator())
+                    : vm.contatos.isEmpty
+                        ? const Center(child: Text('Nenhum contato encontrado'))
+                        : ListView.builder(
+                            itemCount: vm.contatos.length,
+                            itemBuilder: (context, index) {
+                              final contato = vm.contatos[index];
+                              return Card(
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    child: Text(contato.nome[0]),
                                   ),
-                                );
-                                if (atualizado == true) {
-                                  carregarContatos();
-                                }
-                              },
-                            ),
-                          );
-                        },
-                      ),
+                                  title: Text(contato.nome),
+                                  subtitle: Text(
+                                      '${contato.telefone} • ${contato.uf}/${contato.municipio}'),
+                                  onTap: () async {
+                                    // guarda o ViewModel antes do await
+                                    final vm = context.read<ContatoViewModel>();
+                                    final resultado = await Navigator.push<bool>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            DetalhesScreen(contato: contato),
+                                      ),
+                                    );
+                                    if (!mounted) return;
+                                    if (resultado == true) {
+                                      vm.carregarContatos();
+                                    }
+                                  },
+                                ),
+                              );
+                            },
+                          ),
               ),
             ],
           ),
@@ -120,11 +111,16 @@ class _ListaScreenState extends State<ListaScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await Navigator.push(
+          // guarda o ViewModel antes do await
+          final vm = context.read<ContatoViewModel>();
+          final resultado = await Navigator.push<bool>(
             context,
             MaterialPageRoute(builder: (_) => const CadastroScreen()),
           );
-          carregarContatos();
+          if (!mounted) return;
+          if (resultado == true) {
+            vm.carregarContatos();
+          }
         },
         child: const Icon(Icons.add),
       ),

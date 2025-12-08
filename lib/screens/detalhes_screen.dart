@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/cadastro_screen.dart';
-import '../database/database_helper.dart';
+import 'package:provider/provider.dart';
+import 'cadastro_screen.dart';
 import '../models/contato.dart';
+import '../viewmodels/contato_viewmodel.dart';
 
 class DetalhesScreen extends StatelessWidget {
   final Contato contato;
@@ -18,30 +19,20 @@ class DetalhesScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              contato.nome,
-              style: const TextStyle(fontSize: 32, color: Colors.white),
-            ),
+            Text(contato.nome,
+                style: const TextStyle(fontSize: 32, color: Colors.white)),
             const SizedBox(height: 30),
-            Text(
-              'Telefone: ${contato.telefone}',
-              style: const TextStyle(fontSize: 28, color: Colors.white),
-            ),
+            Text('Telefone: ${contato.telefone}',
+                style: const TextStyle(fontSize: 28, color: Colors.white)),
             const SizedBox(height: 20),
-            Text(
-              'Email: ${contato.email}',
-              style: const TextStyle(fontSize: 28, color: Colors.white),
-            ),
+            Text('Email: ${contato.email}',
+                style: const TextStyle(fontSize: 28, color: Colors.white)),
             const SizedBox(height: 20),
-            Text(
-              'UF: ${contato.uf}',
-              style: const TextStyle(fontSize: 28, color: Colors.white),
-            ),
+            Text('UF: ${contato.uf}',
+                style: const TextStyle(fontSize: 28, color: Colors.white)),
             const SizedBox(height: 20),
-            Text(
-              'Município: ${contato.municipio}',
-              style: const TextStyle(fontSize: 28, color: Colors.white),
-            ),
+            Text('Município: ${contato.municipio}',
+                style: const TextStyle(fontSize: 28, color: Colors.white)),
             const SizedBox(height: 100),
 
             // 🔵 Botões lado a lado
@@ -55,15 +46,15 @@ class DetalhesScreen extends StatelessWidget {
                       backgroundColor: const Color.fromARGB(255, 243, 245, 243),
                     ),
                     onPressed: () async {
-                      final atualizado = await Navigator.push(
+                      final navigator = Navigator.of(context); // guarda antes
+                      final atualizado = await Navigator.push<bool>(
                         context,
                         MaterialPageRoute(
                           builder: (_) => CadastroScreen(contato: contato),
                         ),
                       );
-
                       if (atualizado == true) {
-                        Navigator.pop(context, true);
+                        navigator.pop(true); // usa referência guardada
                       }
                     },
                     child: const Text(
@@ -76,25 +67,27 @@ class DetalhesScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       textStyle: const TextStyle(fontSize: 20),
-                      backgroundColor: const Color.fromARGB(255, 243, 245, 243), // cor excluir
+                      backgroundColor:
+                          const Color.fromARGB(255, 243, 245, 243), // cor excluir
                     ),
                     onPressed: () async {
-                      await DatabaseHelper.instance.excluirContato(contato.id!);
-                      Navigator.pop(context, true);
+                      final vm = context.read<ContatoViewModel>(); // guarda antes
+                      final navigator = Navigator.of(context); // guarda antes
+                      await vm.removerContato(contato.id!);
+                      navigator.pop(true); // usa referência guardada
                     },
-                            child: const Text(
+                    child: const Text(
                       'Excluir',
                       style: TextStyle(
-                        color: Colors.red, // cor do texto
+                        color: Colors.red,
                         fontSize: 20,
-                        fontWeight: FontWeight.bold
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
