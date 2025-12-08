@@ -26,7 +26,7 @@ class _ListaScreenState extends State<ListaScreen> {
     final lista = dados.map((map) => Contato.fromMap(map)).toList();
     setState(() {
       contatos = lista;
-      contatosFiltrados = lista; // inicia mostrando todos
+      contatosFiltrados = lista;
     });
   }
 
@@ -43,50 +43,78 @@ class _ListaScreenState extends State<ListaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lista de Contatos')),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                labelText: 'Buscar contato',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: _filtrarContatos,
+          // Fundo com imagem
+          Positioned.fill(
+            child: Image.asset(
+              'assets/fundo_almeida.png',
+              fit: BoxFit.cover,
             ),
           ),
-          Expanded(
-            child: contatosFiltrados.isEmpty
-                ? const Center(child: Text('Nenhum contato encontrado'))
-                : ListView.builder(
-                    itemCount: contatosFiltrados.length,
-                    itemBuilder: (context, index) {
-                      final contato = contatosFiltrados[index];
-                      return ListTile(
-                        key: ValueKey(contato.id),
-                        leading: Hero(
-                          tag: 'contato_${contato.id}',
-                          child: CircleAvatar(child: Text(contato.nome[0])),
-                        ),
-                        title: Text(contato.nome),
-                        subtitle: Text(
-                          '${contato.telefone} • ${contato.uf}/${contato.municipio}',
-                        ),
-                        onTap: () async {
-                          final atualizado = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DetalhesScreen(contato: contato),
+          // Conteúdo por cima
+          Column(
+            children: [
+              AppBar(
+                title: const Text(
+                    'Lista de Contatos',
+                    style: TextStyle(
+                      color: Colors.white, // 🔵 aqui você escolhe a cor
+                      fontWeight: FontWeight.bold, // opcional: deixar em negrito
+                    ),
+                  ),
+                backgroundColor: const Color.fromARGB(0, 250, 249, 249),
+                elevation: 0,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Card(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Buscar contato...',
+                      prefixIcon: Icon(Icons.search),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(12),
+                    ),
+                    onChanged: _filtrarContatos,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: contatosFiltrados.isEmpty
+                    ? const Center(child: Text('Nenhum contato encontrado'))
+                    : ListView.builder(
+                        itemCount: contatosFiltrados.length,
+                        itemBuilder: (context, index) {
+                          final contato = contatosFiltrados[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                child: Text(contato.nome[0]),
+                              ),
+                              title: Text(contato.nome),
+                              subtitle: Text(
+                                  '${contato.telefone} • ${contato.uf}/${contato.municipio}'),
+                              onTap: () async {
+                                final atualizado = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        DetalhesScreen(contato: contato),
+                                  ),
+                                );
+                                if (atualizado == true) {
+                                  carregarContatos();
+                                }
+                              },
                             ),
                           );
-                          if (atualizado == true) {
-                            carregarContatos();
-                          }
                         },
-                      );
-                    },
-                  ),
+                      ),
+              ),
+            ],
           ),
         ],
       ),

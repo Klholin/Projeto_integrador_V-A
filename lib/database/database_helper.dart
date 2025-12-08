@@ -50,16 +50,22 @@ Future _createDB(Database db, int version) async {
     return await db.query('contatos');
   }
 
-  // Atualizar contato
-  Future<int> atualizarContato(Map<String, dynamic> contato) async {
-    final db = await instance.database;
-    return await db.update(
-      'contatos',
-      contato,
-      where: 'id = ?',
-      whereArgs: [contato['id']],
-    );
-  }
+Future<int> atualizarContato(Map<String, dynamic> contato) async {
+  final db = await instance.database;
+
+  final valores = Map<String, Object?>.from(contato);
+  valores.remove('id');
+
+  return await db.update(
+    'contatos',
+    valores,
+    where: 'id = ?',
+    whereArgs: [contato['id']],
+  );
+}
+
+
+
 
   // Excluir contato
   Future<int> excluirContato(int id) async {
