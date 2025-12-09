@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/contato.dart';
 import '../viewmodels/contato_viewmodel.dart';
+import '../exceptions/app_exceptions.dart';
 
 class CadastroScreen extends StatefulWidget {
   final Contato? contato; // se vier preenchido, é edição
@@ -31,39 +32,60 @@ class _CadastroScreenState extends State<CadastroScreen> {
   }
 
   void _salvar() async {
-    if (_formKey.currentState!.validate()) {
-      final vm = context.read<ContatoViewModel>();
-      final navigator = Navigator.of(context);
+  if (_formKey.currentState!.validate()) {
+    final vm = context.read<ContatoViewModel>();
+    final navigator = Navigator.of(context);
 
-      final contato = Contato(
-        id: widget.contato?.id,
-        nome: _nomeController.text,
-        telefone: _telefoneController.text,
-        email: _emailController.text,
-        uf: _ufController.text,
-        municipio: _municipioController.text,
-      );
+    final contato = Contato(
+      id: widget.contato?.id,
+      nome: _nomeController.text,
+      telefone: _telefoneController.text,
+      email: _emailController.text,
+      uf: _ufController.text,
+      municipio: _municipioController.text,
+    );
 
-      try {
-        if (widget.contato == null) {
-          await vm.adicionarContato(contato);
-        } else {
-          await vm.editarContato(contato);
-        }
-
-        if (!mounted) return;
-        navigator.pop(true);
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao salvar contato: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+    try {
+      if (widget.contato == null) {
+        await vm.adicionarContato(contato);
+      } else {
+        await vm.editarContato(contato);
       }
+
+      if (!mounted) return;
+      navigator.pop(true);
+    } on ValidationException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro de validação: ${e.message}"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } on NetworkException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro de rede: ${e.message}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } on DatabaseException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro de banco: ${e.message}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } on AppException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro inesperado: ${e.message}"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

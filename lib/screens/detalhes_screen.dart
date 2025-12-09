@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'cadastro_screen.dart';
 import '../models/contato.dart';
 import '../viewmodels/contato_viewmodel.dart';
+import '../exceptions/app_exceptions.dart';
 
 class DetalhesScreen extends StatelessWidget {
   final Contato contato;
@@ -11,6 +12,8 @@ class DetalhesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.read<ContatoViewModel>();
+
     return Scaffold(
       appBar: AppBar(title: Text(contato.nome)),
       backgroundColor: const Color(0xFF0D47A1),
@@ -46,15 +49,45 @@ class DetalhesScreen extends StatelessWidget {
                       backgroundColor: const Color.fromARGB(255, 243, 245, 243),
                     ),
                     onPressed: () async {
-                      final navigator = Navigator.of(context); // guarda antes
-                      final atualizado = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CadastroScreen(contato: contato),
-                        ),
-                      );
-                      if (atualizado == true) {
-                        navigator.pop(true); // usa referência guardada
+                      final navigator = Navigator.of(context);
+                      final messenger = ScaffoldMessenger.of(context);
+
+                      try {
+                        final atualizado = await navigator.push<bool>(
+                          MaterialPageRoute(
+                            builder: (_) => CadastroScreen(contato: contato),
+                          ),
+                        );
+                        if (atualizado == true) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Contato atualizado com sucesso!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          navigator.pop(true);
+                        }
+                      } on ValidationException catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text("Erro de validação: ${e.message}"),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      } on DatabaseException catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text("Erro de banco: ${e.message}"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      } on AppException catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text("Erro inesperado: ${e.message}"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
                     },
                     child: const Text(
@@ -74,13 +107,43 @@ class DetalhesScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       textStyle: const TextStyle(fontSize: 20),
                       backgroundColor:
-                          const Color.fromARGB(255, 243, 245, 243), // cor excluir
+                          const Color.fromARGB(255, 243, 245, 243),
                     ),
                     onPressed: () async {
-                      final vm = context.read<ContatoViewModel>(); // guarda antes
-                      final navigator = Navigator.of(context); // guarda antes
-                      await vm.removerContato(contato.id!);
-                      navigator.pop(true); // usa referência guardada
+                      final navigator = Navigator.of(context);
+                      final messenger = ScaffoldMessenger.of(context);
+
+                      try {
+                        await vm.removerContato(contato.id!);
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Contato excluído com sucesso!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        navigator.pop(true);
+                      } on ValidationException catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text("Erro de validação: ${e.message}"),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      } on DatabaseException catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text("Erro de banco: ${e.message}"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      } on AppException catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text("Erro inesperado: ${e.message}"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     },
                     child: const Text(
                       'Excluir',
