@@ -1,16 +1,23 @@
-# flutter_application_1
+# Aplicação Flutter – Projeto Integrador V-A
 
-A new Flutter project.
+## Dispositivo recomendado para testes
+**Medium Phone API 36.1 (2)**
 
-## Getting Started
+## Configurações principais do AVD (Android Virtual Device)
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **Codificação:** UTF-8  
+- **ID do dispositivo:** Medium_Phone_API_36.1_2  
+- **Partição de dados:** 6 GB  
+- **Boot:** Fastboot habilitado, Cold Boot desabilitado  
+- **CPU:** 8 núcleos  
+- **Memória RAM:** 2 GB  
+- **Heap da VM:** 336 MB  
+- **Armazenamento:** Cartão SD habilitado  
+- **Sensores:** acelerômetro, giroscópio, GPS, luz, campo magnético, orientação, pressão e proximidade  
+- **Câmeras:** traseira (virtual scene), frontal (emulada)  
+- **Tela:** 1080 x 2400 pixels, densidade 420 dpi, orientação inicial em retrato  
+- **Teclado:** habilitado  
+- **GPU:** habilitada, modo automático  
+- **Sistema:** Android 36.1 com Google Play habilitado  
+- **Rede:** velocidade total, sem latência simulada  
+- **Outros:** frame do dispositivo visível, skin dinâmica, fabricante genérico
